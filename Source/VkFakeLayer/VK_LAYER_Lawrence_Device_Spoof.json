@@ -1,0 +1,13 @@
+{
+	"file_format_version" : "1.0.0",
+	"layer" :{
+		"name" : "Fake_Layer",
+		"type" : "GLOBAL",
+		"library_path": ".\\Fake_Layer.dll",
+		"api_version" : "1.0.0",
+		"implementation_version": "1",
+		"description": "Fake layer for learning",
+		"instance_extensions": [],
+		"device_extensions": []
+	}
+}
