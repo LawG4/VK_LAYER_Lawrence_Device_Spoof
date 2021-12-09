@@ -53,6 +53,9 @@ set_target_properties(asm_offset loader-norm loader-opt loader-unknown-chain
 add_subdirectory(Source/VkTestApplication)
 add_subdirectory(Source/VkFakeLayer)
 
+# Now link the test appplication to the Vulkan loader as that's easier than manually retrieving pointers
+target_link_libraries(VkTestApplication vulkan)
+
 # Add a little function that sorts all of the files in VS
 # Yoinked from https://stackoverflow.com/a/31423421
 function(assign_source_group)
