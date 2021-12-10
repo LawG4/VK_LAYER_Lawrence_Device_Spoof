@@ -1,7 +1,7 @@
 {
 	"file_format_version" : "1.0.0",
 	"layer" :{
-		"name" : "Fake_Layer",
+		"name" : "VK_LAYER_Lawrence_Device_Spoof",
 		"type" : "GLOBAL",
 		"library_path": ".\\Fake_Layer.dll",
 		"api_version" : "1.0.0",

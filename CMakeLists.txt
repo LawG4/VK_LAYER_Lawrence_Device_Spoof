@@ -36,16 +36,19 @@ target_include_directories(VkTestApplication PUBLIC
 
 # Add a custom target which is responsible for copying the json manifest file to the exe directory
 set(Layer_name VK_LAYER_Lawrence_Device_Spoof.json)
-add_custom_target(JsonTarget ALL 
+add_custom_command(
+	OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/bin/$<CONFIG>/${Layer_name}
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		${CMAKE_CURRENT_LIST_DIR}/Source/VkFakeLayer/${Layer_name}
-		$<TARGET_FILE_DIR:VkTestApplication>/${Layer_name}
+		${CMAKE_CURRENT_BINARY_DIR}/bin/$<CONFIG>/${Layer_name}
 	DEPENDS ${CMAKE_CURRENT_LIST_DIR}/Source/VkFakeLayer/${Layer_name}
 	COMMENT "Copying layer manifest file : ${Layer_name}"
+	VERBATIM
 )
+target_sources(VkFakeLayer PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/bin/$<CONFIG>/${Layer_name} )
 
 # Set the executable and layer to be outputted into the same directory
-set_target_properties(VkFakeLayer VkTestApplication vulkan JsonTarget
+set_target_properties(VkFakeLayer VkTestApplication vulkan
 	PROPERTIES
 	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
@@ -54,6 +57,9 @@ set_target_properties(VkFakeLayer VkTestApplication vulkan JsonTarget
 
 # Always default to running the Test application
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT VkTestApplication)
+
+# Make VktestApplication use c++17 for current_path
+set_property(TARGET VkTestApplication PROPERTY CXX_STANDARD 17)
 
 # Vulkan-Loader Generates a bunch of projects we want to group together and hide
 set_target_properties(asm_offset loader-norm loader-opt loader-unknown-chain
