@@ -1,0 +1,8 @@
+;
+; Library definition for windows libraries
+; it tells windows linker which function symbols to 
+; make visible from outside the dll
+;
+LIBRARY VkFakeLayer
+EXPORTS
+vkGetInstanceProcAddr
