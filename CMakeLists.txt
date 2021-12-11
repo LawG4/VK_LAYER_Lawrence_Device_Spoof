@@ -30,7 +30,9 @@ add_dependencies(VkFakeLayer vulkan vl_update_deps)
 
 # Allow the layer and test application to include the vulkan headers
 target_include_directories(VkFakeLayer PUBLIC 
-	${CMAKE_CURRENT_LIST_DIR}/Vulkan-Loader/external/Vulkan-Headers/include/vulkan)
+	${CMAKE_CURRENT_LIST_DIR}/Vulkan-Loader/external/Vulkan-Headers/include
+	${CMAKE_CURRENT_LIST_DIR}/Vulkan-Loader/loader
+	${CMAKE_CURRENT_LIST_DIR}/Vulkan-Loader/loader/generated)
 target_include_directories(VkTestApplication PUBLIC 
 	${CMAKE_CURRENT_LIST_DIR}/Vulkan-Loader/external/Vulkan-Headers/include/vulkan)
 
