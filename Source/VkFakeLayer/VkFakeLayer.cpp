@@ -3,13 +3,44 @@
 #pragma warning(disable : 26812)  // Disable annoying "prefer enum class over enum"
 
 PFN_vkGetInstanceProcAddr vkGetNextInstanceProcAddress = nullptr;
+PFN_vkGetDeviceProcAddr vkGetNextDeviceProcAddr = nullptr;
+PFN_vkGetPhysicalDeviceProperties vkGetNextPhysicalDeviceProperties = nullptr;
+
+VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL
+vkGetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties* pProperties)
+{
+    // Check we retrieved a valid vkPhysicalDeviceProperties struct
+    if (!pProperties) return;
+
+    // Call down to the next layer
+    if (vkGetNextPhysicalDeviceProperties) vkGetNextPhysicalDeviceProperties(physicalDevice, pProperties);
+
+    // Now edit the results to be something funny
+    char deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE] = "NVIDIA GeForce 4050 Beta\0";
+    strcpy_s(pProperties->deviceName, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE * sizeof(char), deviceName);
+
+    // Make an unreleased api version
+    pProperties->apiVersion = VK_MAKE_API_VERSION(0, 1, 4, 0);
+}
 
 VK_LAYER_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetInstanceProcAddr(VkInstance instance,
                                                                                const char* funcName)
 {
-    // If the user is looking for vkCreateInstance, the tell them about our version
+    // If the user is looking for vkGetPhysicalDeviceProperties then intercept it
+    // This is the function that we want to change with our layer
+    if (!strcmp(funcName, "vkGetPhysicalDeviceProperties"))
+        return (PFN_vkVoidFunction)vkGetPhysicalDeviceProperties;
+
+    // If the loader is looking for vkCreateInstance, then tell them about our version
+    // This is because when the instance is created we take that opertunity to set up the
+    // dispatch chain, so our layer can pass calls onto the next layer
     if (!strcmp(funcName, "vkCreateInstance")) return (PFN_vkVoidFunction)vkCreateInstance;
 
+    // Intercept the vkGetInstanceProcAddr as well, this is so this function doesn't get overwritten by the
+    // next layer
+    if (!strcmp(funcName, "vkGetInstanceProcAddr")) return (PFN_vkVoidFunction)vkGetInstanceProcAddr;
+
+    // Else call down to the next layer
     if (!vkGetNextInstanceProcAddress) return nullptr;
     return vkGetNextInstanceProcAddress(instance, funcName);
 }
@@ -38,11 +69,19 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstance
     vkGetNextInstanceProcAddress = nextChain->u.pLayerInfo->pfnNextGetInstanceProcAddr;
 
     if (vkGetNextInstanceProcAddress) {
-        // We have another layer in the dispatch chain
+        // The function pointer for getting the instance proc addresses from the next layer is valid
+        // Save the function pointers in the next layer down for the functions we plan to intercept
+
+        // vkGetPhysicalDeviceProperties
+        vkGetNextPhysicalDeviceProperties = (PFN_vkGetPhysicalDeviceProperties)vkGetNextInstanceProcAddress(
+          *pInstance, "vkGetPhysicalDeviceProperties");
+
+        // We don't need to save the next createinstance, and it has to be valid or else we throw error
         PFN_vkCreateInstance createNextInstance =
           (PFN_vkCreateInstance)vkGetNextInstanceProcAddress(*pInstance, "vkCreateInstance");
         if (!createNextInstance) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
+        // Use the next create instance to call down to the next layer
         // Prepare the create info pNext chain for the next layer
         nextChain->u.pLayerInfo = nextChain->u.pLayerInfo->pNext;
 

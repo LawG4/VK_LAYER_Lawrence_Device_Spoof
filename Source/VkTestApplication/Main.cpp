@@ -127,4 +127,28 @@ int main(int argc, char* argv[])
     } else {
         std::cout << "Created Vulkan instance!" << std::endl;
     }
+
+    // Now do some other code with the instance to ensure it works
+    uint32_t deviceCount;
+    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+    std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
+
+    std::cout << "Displaying physical device properties" << std::endl;
+
+    VkPhysicalDeviceProperties deviceProps{};
+    for (const VkPhysicalDevice& device : physicalDevices) {
+        vkGetPhysicalDeviceProperties(device, &deviceProps);
+
+        std::cout << "--------------------------------------------------" << std::endl;
+        std::cout << deviceProps.deviceName << std::endl;
+        std::cout << "\t* Vendor ID      : " << deviceProps.vendorID << std::endl;
+        std::cout << "\t* API Version    : " << VK_VERSION_MAJOR(deviceProps.apiVersion) << "."
+                  << VK_VERSION_MINOR(deviceProps.apiVersion) << "."
+                  << VK_VERSION_PATCH(deviceProps.apiVersion) << std::endl;
+        std::cout << "\t* Driver Version : " << VK_VERSION_MAJOR(deviceProps.driverVersion) << "."
+                  << VK_VERSION_MINOR(deviceProps.driverVersion) << "."
+                  << VK_VERSION_PATCH(deviceProps.driverVersion) << std::endl;
+    }
+    std::cout << "--------------------------------------------------" << std::endl;
 }
