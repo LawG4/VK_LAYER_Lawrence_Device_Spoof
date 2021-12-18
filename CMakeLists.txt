@@ -43,12 +43,17 @@ target_include_directories(VkTestApplication PUBLIC
 
 # Add a custom target which is responsible for copying the json manifest file to the exe directory
 set(Layer_name VK_LAYER_Lawrence_Device_Spoof.json)
+if(WIN32)
+	set(ManifestName "WindowsManifest.json")
+else()
+	set(ManifestName "UnixManifest.json")
+endif()
 add_custom_command(
 	OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/bin/$<CONFIG>/${Layer_name}
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		${CMAKE_CURRENT_LIST_DIR}/Source/VkFakeLayer/${Layer_name}
+		${CMAKE_CURRENT_LIST_DIR}/Source/VkFakeLayer/${ManifestName}
 		${CMAKE_CURRENT_BINARY_DIR}/bin/$<CONFIG>/${Layer_name}
-	DEPENDS ${CMAKE_CURRENT_LIST_DIR}/Source/VkFakeLayer/${Layer_name}
+	DEPENDS ${CMAKE_CURRENT_LIST_DIR}/Source/VkFakeLayer/${ManifestName}
 	COMMENT "Copying layer manifest file : ${Layer_name}"
 	VERBATIM
 )
