@@ -21,8 +21,13 @@ add_dependencies(VkTestApplication VkFakeLayer)
 
 # Add the loader to the build system and ensure that we pull dependencies
 set(UPDATE_DEPS "True" CACHE STRING "Update the Vulkan loader dependencies")
-set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Default build type for loader")
-set(CMAKE_GENERATOR_PLATFORM "x64" CACHE STRING "Architecture to build the loader for")
+set(CMAKE_BUILD_TYPE "Debug" CACHE INTERNAL "Default build type for loader" FORCE)
+
+# Ensure that the build system uses the vulkan headers in this repo not the users installed ones
+set(VULKAN_HEADERS_INSTALL_DIR "${CMAKE_CURRENT_LIST_DIR}/Vulkan-Loader/external/Vulkan-Headers" 
+	CACHE PATH "Path to Vulkan headers downloaded as submoule" FORCE)
+set(VulkanHeaders_INCLUDE_DIR "${VULKAN_HEADERS_INSTALL_DIR}/include" CACHE PATH "" FORCE)
+set(VulkanRegistry_DIR "${VULKAN_HEADERS_INSTALL_DIR}/share/vulkan/registry" CACHE PATH "" FORCE)
 add_subdirectory(Vulkan-Loader)
 
 # Make the Layer (and Thus test application) depend on the Vulkan loader target
@@ -64,7 +69,7 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT V
 set_property(TARGET VkTestApplication PROPERTY CXX_STANDARD 17)
 
 # Vulkan-Loader Generates a bunch of projects we want to group together and hide
-set_target_properties(asm_offset loader-norm loader-opt loader-unknown-chain
+set_target_properties(asm_offset 
 	vl_update_deps VulkanLoader_generated_source PROPERTIES FOLDER "Vulkan Loader Targets")
 
 # Add the different CMake Lists for the executable and the layer so we can add more sources later
