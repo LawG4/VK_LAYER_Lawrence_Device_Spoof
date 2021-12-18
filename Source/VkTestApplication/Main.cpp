@@ -1,6 +1,7 @@
 #include "vulkan.h"
 
 #include <stdlib.h>
+#include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <vector>
@@ -41,7 +42,7 @@ int main(int argc, char* argv[])
     if (vulkanSDK) envCommand += ";" + std::string(vulkanSDK) + "/Bin";
 
     // Finally place the layer path into the environment variable
-    if (putenv(envCommand.c_str()) != 0)
+    if (putenv(const_cast<char*>(envCommand.c_str())) != 0)
         std::cout << "Failed to set environment variable : " << envCommand << std::endl;
 
     // It's not guarenteed, but use arg 1 as the working directory for the binary

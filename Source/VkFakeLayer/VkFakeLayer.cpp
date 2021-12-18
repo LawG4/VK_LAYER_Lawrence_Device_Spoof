@@ -1,4 +1,4 @@
-#include <string>
+#include <cstring>
 #include "vulkan/vk_layer.h"      // For function exporting
 #pragma warning(disable : 26812)  // Disable annoying "prefer enum class over enum"
 
@@ -7,7 +7,7 @@ PFN_vkGetDeviceProcAddr vkGetNextDeviceProcAddr = nullptr;
 PFN_vkGetPhysicalDeviceProperties vkGetNextPhysicalDeviceProperties = nullptr;
 
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL
-vkGetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties* pProperties)
+getPhysicalDeviceProperties(VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties* pProperties)
 {
     // Check we retrieved a valid vkPhysicalDeviceProperties struct
     if (!pProperties) return;
@@ -17,35 +17,14 @@ vkGetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice, VkPhysicalDeviceP
 
     // Now edit the results to be something funny
     char deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE] = "NVIDIA GeForce 4050 Beta\0";
-    strcpy_s(pProperties->deviceName, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE * sizeof(char), deviceName);
+    strcpy(pProperties->deviceName, deviceName);
 
     // Make an unreleased api version
     pProperties->apiVersion = VK_MAKE_API_VERSION(0, 1, 4, 0);
 }
 
-VK_LAYER_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetInstanceProcAddr(VkInstance instance,
-                                                                               const char* funcName)
-{
-    // If the user is looking for vkGetPhysicalDeviceProperties then intercept it
-    // This is the function that we want to change with our layer
-    if (!strcmp(funcName, "vkGetPhysicalDeviceProperties"))
-        return (PFN_vkVoidFunction)vkGetPhysicalDeviceProperties;
 
-    // If the loader is looking for vkCreateInstance, then tell them about our version
-    // This is because when the instance is created we take that opertunity to set up the
-    // dispatch chain, so our layer can pass calls onto the next layer
-    if (!strcmp(funcName, "vkCreateInstance")) return (PFN_vkVoidFunction)vkCreateInstance;
-
-    // Intercept the vkGetInstanceProcAddr as well, this is so this function doesn't get overwritten by the
-    // next layer
-    if (!strcmp(funcName, "vkGetInstanceProcAddr")) return (PFN_vkVoidFunction)vkGetInstanceProcAddr;
-
-    // Else call down to the next layer
-    if (!vkGetNextInstanceProcAddress) return nullptr;
-    return vkGetNextInstanceProcAddress(instance, funcName);
-}
-
-VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo,
+VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL createInstance(const VkInstanceCreateInfo* pCreateInfo,
                                                                 const VkAllocationCallbacks* pAllocator,
                                                                 VkInstance* pInstance)
 {
@@ -92,6 +71,29 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstance
     return VK_SUCCESS;
 }
 
+VK_LAYER_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetInstanceProcAddr(VkInstance instance,
+                                                                               const char* funcName)
+{
+    // If the user is looking for vkGetPhysicalDeviceProperties then intercept it
+    // This is the function that we want to change with our layer
+    if (!strcmp(funcName, "vkGetPhysicalDeviceProperties"))
+        return (PFN_vkVoidFunction)getPhysicalDeviceProperties;
+
+    // If the loader is looking for vkCreateInstance, then tell them about our version
+    // This is because when the instance is created we take that opertunity to set up the
+    // dispatch chain, so our layer can pass calls onto the next layer
+    if (!strcmp(funcName, "vkCreateInstance")) return (PFN_vkVoidFunction)createInstance;
+
+    // Intercept the vkGetInstanceProcAddr as well, this is so this function doesn't get overwritten by the
+    // next layer
+    if (!strcmp(funcName, "vkGetInstanceProcAddr")) return (PFN_vkVoidFunction)vkGetInstanceProcAddr;
+
+    // Else call down to the next layer
+    if (!vkGetNextInstanceProcAddress) return nullptr;
+    return vkGetNextInstanceProcAddress(instance, funcName);
+}
+
+/*
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkNegotiateLoaderLayerInterfaceVersion(VkNegotiateLayerInterface* pVersionStruct)
 {
@@ -103,8 +105,12 @@ vkNegotiateLoaderLayerInterfaceVersion(VkNegotiateLayerInterface* pVersionStruct
     // What version of the struct is the loader using?
     if (pVersionStruct->loaderLayerInterfaceVersion >= 2) {
         pVersionStruct->pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
+        pVersionStruct->pfnGetDeviceProcAddr = nullptr;
+        pVersionStruct->pfnGetPhysicalDeviceProcAddr = nullptr;
+        
     }
 
     // Got to the end okay
     return VK_SUCCESS;
 }
+*/
