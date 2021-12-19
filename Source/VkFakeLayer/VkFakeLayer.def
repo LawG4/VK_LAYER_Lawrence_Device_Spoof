@@ -5,6 +5,4 @@
 ;
 LIBRARY VkFakeLayer
 EXPORTS
-vkNegotiateLoaderLayerInterfaceVersion
 vkGetInstanceProcAddr
-vkCreateInstance

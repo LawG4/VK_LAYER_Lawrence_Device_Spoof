@@ -23,10 +23,9 @@ getPhysicalDeviceProperties(VkPhysicalDevice physicalDevice, VkPhysicalDevicePro
     pProperties->apiVersion = VK_MAKE_API_VERSION(0, 1, 4, 0);
 }
 
-
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL createInstance(const VkInstanceCreateInfo* pCreateInfo,
-                                                                const VkAllocationCallbacks* pAllocator,
-                                                                VkInstance* pInstance)
+                                                              const VkAllocationCallbacks* pAllocator,
+                                                              VkInstance* pInstance)
 {
     // Let's loop through all of the pNext chains, to find the next VkLayerInstanceCreateInfo
     // this tells us all of the information we need to know about the next layer
@@ -93,7 +92,13 @@ VK_LAYER_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetInstanceProcAddr(V
     return vkGetNextInstanceProcAddress(instance, funcName);
 }
 
-/*
+/**
+ * For some reason, and I am not sure why. Using the NegotiateLayerInterfaceVersion causes a hang on linux
+ * swiftshader. This seems to revolve around a loader mutex trying to lock, and it is never released
+ * I don't know why this happens, but I also had to change the name of the intercepted functions to remove vk
+ * except for getInstanceProcAddr, I really am clueless here. Perhaps because this project also builds the
+ * loader the function declarations don't agree?
+ *
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkNegotiateLoaderLayerInterfaceVersion(VkNegotiateLayerInterface* pVersionStruct)
 {
@@ -107,7 +112,7 @@ vkNegotiateLoaderLayerInterfaceVersion(VkNegotiateLayerInterface* pVersionStruct
         pVersionStruct->pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
         pVersionStruct->pfnGetDeviceProcAddr = nullptr;
         pVersionStruct->pfnGetPhysicalDeviceProcAddr = nullptr;
-        
+
     }
 
     // Got to the end okay
