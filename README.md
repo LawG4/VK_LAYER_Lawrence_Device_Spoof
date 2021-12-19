@@ -6,7 +6,7 @@ This is my educational project where I experiment with attempting to build my ow
 
 
 
-Build instructions.
+### **Build instructions.**
 
 ```bash
 # Pull the repo 
@@ -22,5 +22,11 @@ cmake ..
 cmake --build .
 ```
 
-From what I've seen you'll have to use Unix make files on linux. It seems that ninja actually hates ASM for the Vulkan loader.  
+From what I've seen you'll have to use Unix make files on Linux. It seems that ninja actually hates ASM for the Vulkan loader.  
+
+
+
+### Test Application notes
+
+Also on Linux when you launch the application, you have to launch it with your terminal in directory build/bin. This is because the application relies on adding the binary's working directory to the VK_LAYER_PATH environment variable. Of course if the layer is already in VK_LAYER_PATH, then this won't matter. 
 

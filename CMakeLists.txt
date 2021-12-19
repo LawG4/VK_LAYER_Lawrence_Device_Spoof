@@ -48,16 +48,25 @@ if(WIN32)
 else()
 	set(ManifestName "UnixManifest.json")
 endif()
+
+# Add the custom target output path depending on if we're using a multi config generator
+if (CMAKE_GENERATOR MATCHES "Unix Makefiles")
+	set(ManifestOutDir bin)
+else()
+	set(ManifestOutDir bin/$<CONFIG>)
+endif()
+
+# Finally add the custom target
 add_custom_command(
-	OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/bin/$<CONFIG>/${Layer_name}
+	OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${ManifestOutDir}/${Layer_name}
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		${CMAKE_CURRENT_LIST_DIR}/Source/VkFakeLayer/${ManifestName}
-		${CMAKE_CURRENT_BINARY_DIR}/bin/$<CONFIG>/${Layer_name}
+		${CMAKE_CURRENT_BINARY_DIR}/${ManifestOutDir}/${Layer_name}
 	DEPENDS ${CMAKE_CURRENT_LIST_DIR}/Source/VkFakeLayer/${ManifestName}
 	COMMENT "Copying layer manifest file : ${Layer_name}"
 	VERBATIM
 )
-target_sources(VkFakeLayer PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/bin/$<CONFIG>/${Layer_name} )
+target_sources(VkFakeLayer PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${ManifestOutDir}/${Layer_name} )
 
 # Set the executable and layer to be outputted into the same directory
 set_target_properties(VkFakeLayer VkTestApplication vulkan

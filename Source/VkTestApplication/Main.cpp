@@ -7,9 +7,10 @@
 #include <vector>
 
 // Are we using validation layers?
-bool enableValidation = true;
 #ifdef NDEBUG
-enableValidation = false;
+bool enableValidation = false;
+#else
+bool enableValidation = true;
 #endif  // NDEBUG
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL deubgCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
